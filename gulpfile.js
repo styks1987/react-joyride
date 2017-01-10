@@ -12,10 +12,14 @@ var gulp        = require('gulp'),
 
 var shouldWatch = false;
 
+if(typeof process.env.DEMO_DIR == 'undefined') {
+    process.env.DEMO_DIR = 'test/demo/';
+}
+
 function bundleScripts(options) {
   var bundler, rebundle, iteration = 0;
   bundler = browserify({
-    entries: path.join(__dirname, '/test/demo/main.js'),
+    entries: path.join(__dirname, '/' + process.env.DEMO_DIR + 'main.js'),
     basedir: __dirname,
     insertGlobals: false, // options.watch
     cache: {},
@@ -104,7 +108,7 @@ gulp.task('build', ['clean'], function(cb) {
 gulp.task('localserver', function(cb) {
   shouldWatch = true;
 
-  gulp.watch(['src/styles/*', 'test/demo/*.scss'], function() {
+  gulp.watch(['src/styles/*', process.env.DEMO_DIR + '*.scss'], function() {
     gulp.start('setup:styles');
   });
 
@@ -112,11 +116,11 @@ gulp.task('localserver', function(cb) {
 });
 
 gulp.task('setup:test', ['setup:scripts', 'setup:styles'], function() {
-  gulp.src('test/demo/index.html')
+  gulp.src(process.env.DEMO_DIR + 'index.html')
     .pipe(gulp.dest('.tmp'));
 
   return $.connect.server({
-    root: [path.join(__dirname, 'test', 'demo'), path.join(__dirname, '.tmp/')],
+    root: [path.join(__dirname, process.env.DEMO_DIR), path.join(__dirname, '.tmp/')],
     livereload: true,
     port: 8888
   });
@@ -130,7 +134,7 @@ gulp.task('setup:scripts', function(cb) {
 });
 
 gulp.task('setup:styles', function() {
-  return gulp.src('test/demo/main.scss')
+  return gulp.src(process.env.DEMO_DIR + 'main.scss')
     .pipe($.plumber())
     .pipe($.sass.sync({
       precision: 4
