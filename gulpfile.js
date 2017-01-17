@@ -147,7 +147,8 @@ gulp.task('setup:styles', function() {
 });
 
 gulp.task('test:ui', ['setup:test'], function(cb) {
-  exec('./node_modules/.bin/nightwatch -c test/nightwatch.conf.js', function(error, stdout) {
+  var nightwatchPath = path.resolve('node_modules', '.bin', 'nightwatch');
+  exec(`${nightwatchPath} -c test/nightwatch.conf.js`, function(error, stdout) {
     $.connect.serverClose();
     console.log(stdout);
 
