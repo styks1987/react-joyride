@@ -2,7 +2,7 @@ import React from 'react';
 import scroll from 'scroll';
 import autobind from 'react-autobind';
 import nested from 'nested-property';
-import { getRootEl, logger, sanitizeSelector } from './utils';
+import { getOffsetBoundingClientRect, getRootEl, logger, sanitizeSelector } from './utils';
 
 import Beacon from './Beacon';
 import Tooltip from './Tooltip';
@@ -61,6 +61,7 @@ class Joyride extends React.Component {
     holePadding: React.PropTypes.number,
     keyboardNavigation: React.PropTypes.bool,
     locale: React.PropTypes.object,
+    offsetParentSelector: React.PropTypes.string,
     resizeDebounce: React.PropTypes.bool,
     resizeDebounceDelay: React.PropTypes.number,
     run: React.PropTypes.bool,
@@ -90,6 +91,7 @@ class Joyride extends React.Component {
       next: 'Next',
       skip: 'Skip'
     },
+    offsetParentSelector: 'body',
     resizeDebounce: false,
     resizeDebounceDelay: 200,
     run: false,
@@ -649,15 +651,16 @@ class Joyride extends React.Component {
    */
   getScrollTop() {
     const { index, yPos } = this.state;
-    const { scrollOffset, steps } = this.props;
+    const { offsetParentSelector, scrollOffset, steps } = this.props;
     const step = steps[index];
     const target = this.getStepTargetElement(step);
+    const offsetParent = document.querySelector(sanitizeSelector(offsetParentSelector));
 
     if (!target) {
       return 0;
     }
 
-    const rect = target.getBoundingClientRect();
+    const rect = getOffsetBoundingClientRect(target, offsetParent);
     const targetTop = rect.top + (window.pageYOffset || document.documentElement.scrollTop);
     const position = this.calcPosition(step);
     let scrollTo = 0;
@@ -874,10 +877,11 @@ class Joyride extends React.Component {
    */
   calcPlacement() {
     const { index, isRunning, standaloneData, shouldRenderTooltip } = this.state;
-    const { steps, tooltipOffset } = this.props;
+    const { offsetParentSelector, steps, tooltipOffset } = this.props;
     const step = standaloneData || (steps[index] || {});
     const displayTooltip = standaloneData ? true : shouldRenderTooltip;
     const target = this.getStepTargetElement(step);
+    const offsetParent = document.querySelector(sanitizeSelector(offsetParentSelector));
 
     logger({
       type: `joyride:calcPlacement${this.getRenderStage()}`,
@@ -904,7 +908,7 @@ class Joyride extends React.Component {
       const body = document.body.getBoundingClientRect();
       const scrollTop = step.isFixed === true ? 0 : body.top;
       const component = this.getElementDimensions();
-      const rect = target.getBoundingClientRect();
+      const rect = getOffsetBoundingClientRect(target, offsetParent);
 
       // Calculate x position
       if (/^left/.test(position)) {
@@ -954,11 +958,12 @@ class Joyride extends React.Component {
    * @returns {string}
    */
   calcPosition(step) {
-    const { tooltipOffset } = this.props;
+    const { offsetParentSelector, tooltipOffset } = this.props;
     const body = document.body.getBoundingClientRect();
     const target = this.getStepTargetElement(step);
     const width = this.getElementDimensions().width || DEFAULTS.minWidth;
-    const rect = target.getBoundingClientRect();
+    const offsetParent = document.querySelector(sanitizeSelector(offsetParentSelector));
+    const rect = getOffsetBoundingClientRect(target, offsetParent);
     let position = step.position || DEFAULTS.position;
 
     if (/^left/.test(position) && rect.left - (width + tooltipOffset) < 0) {
@@ -1039,6 +1044,7 @@ class Joyride extends React.Component {
       disableOverlay,
       holePadding,
       locale,
+      offsetParentSelector,
       showBackButton,
       showOverlay,
       showSkipButton,
@@ -1109,6 +1115,7 @@ class Joyride extends React.Component {
         buttons,
         disableOverlay,
         holePadding,
+        offsetParentSelector,
         position,
         selector: sanitizeSelector(step.selector),
         showOverlay: shouldShowOverlay,
