@@ -13,7 +13,13 @@ export default class Demo extends React.Component {
           text: 'Ooops. I forgot to add images!',
           selector: '.my-selector',
           position: 'top-left',
-        }
+        },
+          {
+              title: 'Our Projects',
+              text: 'Ooops. I forgot to add images!',
+              selector: '.step2',
+              position: 'top-left',
+          }
       ]
     };
 
@@ -37,6 +43,9 @@ export default class Demo extends React.Component {
             </div>
             <div className="my-selector" style={{width: '600px', background: 'blue', padding: '10px', color: 'white', marginLeft: '100px'}}>
               My element for the step selector
+            </div>
+            <div style={{position: 'relative', marginTop: '200px', paddingTop: '20px',height: '400px', background: 'grey', color: 'white'}}>
+              <div style={{background: 'green',  color: 'white', width: '500px', height:'100px'}} className="step2">STEPPPY TTTTWOOO</div>
             </div>
           </div>
         </div>
