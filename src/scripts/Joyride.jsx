@@ -53,6 +53,7 @@ class Joyride extends React.Component {
   }
 
   static propTypes = {
+    allowClicksThruHole: React.PropTypes.bool,
     autoStart: React.PropTypes.bool,
     callback: React.PropTypes.func,
     debug: React.PropTypes.bool,
@@ -77,6 +78,7 @@ class Joyride extends React.Component {
   };
 
   static defaultProps = {
+    allowClicksThruHole: false,
     autoStart: false,
     debug: false,
     holePadding: 5,
@@ -230,7 +232,7 @@ class Joyride extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    const { action, index, isRunning, shouldRenderTooltip, standaloneData } = this.state;
+    const { index, isRunning, shouldRenderTooltip, standaloneData } = this.state;
     const { steps } = this.props;
     const { steps: nextSteps } = nextProps;
     const step = steps[index];
@@ -252,7 +254,7 @@ class Joyride extends React.Component {
     if ((!isRunning && nextState.isRunning) && index === 0) {
       this.triggerCallback({
         action: 'start',
-        index,
+        index: nextState.index,
         type: callbackTypes.STEP_BEFORE,
         step: nextStep
       });
@@ -269,7 +271,7 @@ class Joyride extends React.Component {
 
     if (nextState.index !== index && isRunning) {
       this.triggerCallback({
-        action,
+        action: nextState.action,
         index,
         type: callbackTypes.STEP_AFTER,
         step
@@ -435,8 +437,11 @@ class Joyride extends React.Component {
     const { index, isRunning } = this.state;
     const shouldRestart = restart === true;
 
-    const newState = JSON.parse(JSON.stringify(defaultState));
-    newState.isRunning = shouldRestart;
+    const newState = {
+      ...defaultState,
+      isRunning: shouldRestart,
+      shouldRenderTooltip: this.props.autoStart,
+    };
 
     logger({
       type: 'joyride:reset',
@@ -552,7 +557,7 @@ class Joyride extends React.Component {
     }
 
     // Check that all required step fields are present
-    const requiredFields = ['selector', 'text'];
+    const requiredFields = ['selector'];
     const hasRequiredField = (requiredField) => {
       const hasField = Boolean(step[requiredField]);
       if (!hasField) {
@@ -1047,6 +1052,7 @@ class Joyride extends React.Component {
     const target = this.getStepTargetElement(step);
     let component;
 
+    const allowClicksThruHole = (step && step.allowClicksThruHole) || this.props.allowClicksThruHole;
     const shouldShowOverlay = standaloneData ? false : showOverlay;
     const buttons = {
       primary: locale.close
@@ -1098,6 +1104,7 @@ class Joyride extends React.Component {
       }
 
       component = React.createElement(Tooltip, {
+        allowClicksThruHole,
         animate: xPos > -1 && !shouldRedraw,
         buttons,
         disableOverlay,
